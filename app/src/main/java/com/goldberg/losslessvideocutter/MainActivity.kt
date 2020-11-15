@@ -17,8 +17,8 @@ import androidx.lifecycle.ViewModelProvider
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 
-// TODO 'play video' buttons for input/output files
-// TODO 'share' button for ouput video
+// TODO 'share' button for output video
+// TODO 'delete' button for output video
 // TODO 'delete all output' button
 // TODO extract strings
 // -- later --
@@ -70,6 +70,7 @@ class MainActivity : AppCompatActivity()
         }
 
         input_video_play_button.setOnClickListener { playVideo(viewModel.inputFile.value) }
+        output_video_play_button.setOnClickListener { playVideo(viewModel.outputFile.value) }
 
         if (!hasPermissions(*PERMISSIONS))
         {
