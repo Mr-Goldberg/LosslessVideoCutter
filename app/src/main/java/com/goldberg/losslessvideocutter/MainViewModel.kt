@@ -18,11 +18,16 @@ import java.util.concurrent.TimeUnit
 
 class MainViewModel(application: Application) : AndroidViewModel(application)
 {
+    // Set by this (Model) class, observed by Activity
+
     val inputFile = MutableLiveData<File>()
     val inputFileDuration = MutableLiveData<Float>()
-    var outputCutRange: List<Float>? = null
     val outputFile = MutableLiveData<File>()
     val outputFileUri = MutableLiveData<Uri>()
+
+    // Set by Activity class
+
+    var outputCutRange: List<Float>? = null
 
     private val context = getApplication<Application>().applicationContext
     private val backgroundTaskExecutor = ThreadPoolExecutor(0, 1, 60L, TimeUnit.SECONDS, ArrayBlockingQueue<Runnable>(50))
@@ -131,6 +136,53 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
             {
                 mainThreadHandler.post { completion("Unable to delete file") }
             }
+        }
+    }
+
+    fun deleteAllOutputFilesAsync(completion: (message: String) -> Unit)
+    {
+        backgroundTaskExecutor.execute {
+
+            outputFile.postValue(null)
+            outputFileUri.postValue(null)
+
+            val outputDir = Storage.getOutputDir()
+            val files = outputDir.listFiles()
+            if (files.isNullOrEmpty())
+            {
+                mainThreadHandler.post { completion("No files to delete") }
+                return@execute
+            }
+
+            var filesDeleted = 0
+            for (file in files)
+            {
+                if (file.deleteRecursively()) // Call deleteRecursively() just in case user has created any directories in our output dir
+                {
+                    ++filesDeleted
+                }
+            }
+
+            // Check if 'input files' was deleted too. In case if it was in the output dir.
+
+            val inputFile = inputFile.value
+            if (inputFile != null && !inputFile.exists())
+            {
+                this.inputFile.postValue(null)
+                inputFileDuration.postValue(null)
+            }
+
+            val message =
+                if (filesDeleted == files.size)
+                {
+                    "Deleted $filesDeleted files"
+                }
+                else
+                {
+                    "Deleted $filesDeleted/${files.size} files"
+                }
+
+            mainThreadHandler.post { completion(message) }
         }
     }
 

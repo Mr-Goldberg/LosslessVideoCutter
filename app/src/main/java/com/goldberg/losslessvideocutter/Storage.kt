@@ -45,11 +45,7 @@ object Storage
         }
     }
 
-    private fun getOutputDir() = File(Environment.getExternalStorageDirectory(), STORAGE_DIR)
-
-//    fun getDir(name: String) = File(getStorageDir(), name)
-
-//    fun getOutputFile(name: String) = File(getOutputDir(), name)
+    fun getOutputDir() = File(Environment.getExternalStorageDirectory(), STORAGE_DIR)
 
     private fun makeOutputFile(inputFile: File, outputCutRange: IntRange): File
     {

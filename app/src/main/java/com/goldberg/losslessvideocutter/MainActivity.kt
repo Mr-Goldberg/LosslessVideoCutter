@@ -9,6 +9,8 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -19,7 +21,6 @@ import com.goldberg.losslessvideocutter.Constants.MIME_TYPE_VIDEO
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 
-// TODO 'delete all output' button
 // TODO check any button double presses
 // TODO check if UI is really disabled during async operation
 // TODO Pretty layout
@@ -63,6 +64,7 @@ class MainActivity : AppCompatActivity()
         })
 
         viewModel.inputFileDuration.observe(this, Observer { duration ->
+            video_cut_range_slider.isEnabled = (duration != null)
             duration ?: return@Observer
             video_cut_range_slider.valueTo = duration
             val cutRange = listOf(0.0f, duration)
@@ -245,6 +247,51 @@ class MainActivity : AppCompatActivity()
     private fun showErrorToastIfNeeded(error: String?, isLong: Boolean = false)
     {
         if (error != null) showToast(error, isLong)
+    }
+
+    //
+    // Options menu
+    //
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean
+    {
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean
+    {
+        when (item.itemId)
+        {
+            R.id.open_output_dir ->
+            {
+                // TODO
+            }
+            R.id.clean_output_dir ->
+            {
+                AlertDialog.Builder(this)
+                    .setTitle("Clear output directory")
+                    .setMessage("Are you sure you want clear the output directory?\nThis action cannot be undone.")
+                    .setPositiveButton("Clear") { _, _ ->
+
+                        showProgressDialog("Cleaning up")
+                        viewModel.deleteAllOutputFilesAsync { message ->
+                            dismissProgressDialog()
+                            showToast(message)
+                        }
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+
+                return true
+            }
+            R.id.show_info ->
+            {
+                // TODO
+            }
+        }
+
+        return super.onOptionsItemSelected(item)
     }
 
     //

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/open_output_dir"
+        android:title="Open output directory" />
+    <item
+        android:id="@+id/clean_output_dir"
+        android:title="Clear output directory" />
+    <item
+        android:id="@+id/show_info"
+        android:title="Info" />
+</menu>
