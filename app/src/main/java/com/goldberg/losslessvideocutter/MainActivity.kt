@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -18,10 +19,16 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 
 // TODO 'share' button for output video
+// TODO ??? add output file to media store
 // TODO 'delete' button for output video
 // TODO 'delete all output' button
+// TODO check if UI is really disabled during async operation
+// TODO Pretty layout
+// TODO chose theme
+// TODO check filesystem on android 11
+// Proper layout
+// -- after release --
 // TODO extract strings
-// -- later --
 // TODO localize Russian/Ukrainian
 // TODO extract key frames from ffmpeg to make user cut experience better
 class MainActivity : AppCompatActivity()
@@ -62,15 +69,17 @@ class MainActivity : AppCompatActivity()
 
         open_video_file_manager_button.setOnClickListener { pickVideo(Intent.ACTION_GET_CONTENT) }
         open_video_gallery_button.setOnClickListener { pickVideo(Intent.ACTION_PICK) }
-        cut_video_button.setOnClickListener { onCutVideoButtonClick() }
+        cut_video_button.setOnClickListener(this::onCutVideoButtonClick)
 
-        video_cut_range_slider.addOnChangeListener { slider, value, fromUser ->
+        video_cut_range_slider.addOnChangeListener { slider, value, _ ->
             viewModel.outputCutRange = slider.values
             Log.d(TAG, "SliderChangeListener ${slider.values} $value")
         }
 
         input_video_play_button.setOnClickListener { playVideo(viewModel.inputFile.value) }
         output_video_play_button.setOnClickListener { playVideo(viewModel.outputFile.value) }
+        output_video_share_button.setOnClickListener(this::shareOutputFile)
+        output_video_delete_button.setOnClickListener(this::deleteOutputFile)
 
         if (!hasPermissions(*PERMISSIONS))
         {
@@ -83,7 +92,7 @@ class MainActivity : AppCompatActivity()
     // Controls
     //
 
-    private fun onCutVideoButtonClick()
+    private fun onCutVideoButtonClick(@Suppress("UNUSED_PARAMETER") button: View)
     {
         val isOutputFileExists: Boolean
         try
@@ -118,7 +127,7 @@ class MainActivity : AppCompatActivity()
         {
             viewModel.cutAsync(overwrite) { error ->
                 dismissProgressDialog()
-                if (error != null) Toast.makeText(this, error, Toast.LENGTH_LONG).show()
+                showErrorToastIfNeeded(error, true)
             }
         }
         catch (ex: IllegalStateException)
@@ -137,8 +146,33 @@ class MainActivity : AppCompatActivity()
         }
 
         val intent = Intent(Intent.ACTION_VIEW)
-        intent.setDataAndType(Uri.parse(file.absolutePath), "video/*")
+        intent.setDataAndType(Uri.parse(file.absolutePath), CONTENT_VIDEO)
         startActivity(Intent.createChooser(intent, "Open video using"))
+    }
+
+    private fun shareOutputFile(@Suppress("UNUSED_PARAMETER") button: View)
+    {
+        val intent = Intent(Intent.ACTION_SEND)
+        intent.type = CONTENT_VIDEO
+        intent.putExtra(Intent.EXTRA_SUBJECT, "Subject test")
+        intent.putExtra(Intent.EXTRA_TEXT, "extra text that you want to put")
+        startActivity(Intent.createChooser(intent, "Share via"))
+    }
+
+    private fun deleteOutputFile(@Suppress("UNUSED_PARAMETER") button: View)
+    {
+        showProgressDialog("Removing file")
+        viewModel.deleteOutputFileAsync { error ->
+            dismissProgressDialog()
+            if (error == null)
+            {
+                showToast("File deleted")
+            }
+            else
+            {
+                showToast(error)
+            }
+        }
     }
 
     //
@@ -194,7 +228,7 @@ class MainActivity : AppCompatActivity()
     private fun pickVideo(action: String)
     {
         val intent = Intent()
-        intent.type = "video/*"
+        intent.type = CONTENT_VIDEO
         intent.action = action
         startActivityForResult(Intent.createChooser(intent, "Select Video"), PICK_VIDEO_REQUEST_CODE)
     }
@@ -210,7 +244,7 @@ class MainActivity : AppCompatActivity()
         enableCutControls(false)
         viewModel.setVideoFileAsync(selectedVideoUri) { error ->
             dismissProgressDialog()
-            if (error != null) Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
+            showErrorToastIfNeeded(error)
         }
     }
 
@@ -242,10 +276,22 @@ class MainActivity : AppCompatActivity()
         progressDialog = null
     }
 
+    private fun showToast(message: String, isLong: Boolean = false)
+    {
+        val duration = if (isLong) Toast.LENGTH_LONG else Toast.LENGTH_SHORT
+        Toast.makeText(this, message, duration).show()
+    }
+
+    private fun showErrorToastIfNeeded(error: String?, isLong: Boolean = false)
+    {
+        if (error != null) showToast(error, isLong)
+    }
+
     companion object
     {
         private const val TAG = "MainActivity"
 
+        private const val CONTENT_VIDEO = "video/*"
         private val PERMISSIONS = arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         private const val PERMISSIONS_REQUEST_CODE = 100
         private const val PICK_VIDEO_REQUEST_CODE = 101

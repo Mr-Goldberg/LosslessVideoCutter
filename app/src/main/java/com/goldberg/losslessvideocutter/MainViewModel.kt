@@ -25,6 +25,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
     private val backgroundTaskExecutor = ThreadPoolExecutor(0, 1, 60L, TimeUnit.SECONDS, ArrayBlockingQueue<Runnable>(50))
     private val mainThreadHandler = Handler()
 
+    // TODO handle exceptions
+    fun isOutputFileExists(): Boolean
+    {
+        val inputFile = inputFile.value ?: throw IllegalStateException("No input file selected")
+        val outputCutRange = outputCutRange ?: throw IllegalStateException("No cut range selected")
+
+        return Storage.isOutputFileExists(inputFile, outputCutRange)
+    }
+
     fun setVideoFileAsync(uri: Uri, completion: (error: String?) -> Unit)
     {
         backgroundTaskExecutor.execute {
@@ -59,15 +68,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
     }
 
     // TODO handle exceptions
-    fun isOutputFileExists(): Boolean
-    {
-        val inputFile = inputFile.value ?: throw IllegalStateException("No input file selected")
-        val outputCutRange = outputCutRange ?: throw IllegalStateException("No cut range selected")
-
-        return Storage.isOutputFileExists(inputFile, outputCutRange)
-    }
-
-    // TODO handle exceptions
     fun cutAsync(overwrite: Boolean, completion: (error: String?) -> Unit)
     {
         val inputFile = inputFile.value ?: throw IllegalStateException("No input file selected")
@@ -93,6 +93,35 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
 
             this.outputFile.postValue(outputFile)
             mainThreadHandler.post { completion(error) }
+        }
+    }
+
+    fun deleteOutputFileAsync(completion: (error: String?) -> Unit)
+    {
+        val outputFile = outputFile.value
+        if (outputFile == null)
+        {
+            completion(null)
+            return
+        }
+
+        backgroundTaskExecutor.execute {
+
+            var success = true
+            if (outputFile.exists())
+            {
+                success = outputFile.delete()
+            }
+
+            if (success)
+            {
+                this.outputFile.postValue(null)
+                mainThreadHandler.post { completion(null) }
+            }
+            else
+            {
+                mainThreadHandler.post { completion("Unable to delete file") }
+            }
         }
     }
 
