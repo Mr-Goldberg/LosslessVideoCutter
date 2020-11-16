@@ -16,6 +16,7 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
+
 class MainViewModel(application: Application) : AndroidViewModel(application)
 {
     // Set by this (Model) class, observed by Activity
@@ -126,6 +127,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
                 success = outputFile.delete()
             }
 
+            MediaStoreHelper.removePathsFromMediaStore(context, arrayOf(outputFile.absolutePath))
+            verifyInputFileExists()
+
             if (success)
             {
                 this.outputFile.postValue(null)
@@ -155,23 +159,27 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
             }
 
             var filesDeleted = 0
+            val filePaths = ArrayList<String>(files.size)
             for (file in files)
             {
-                if (file.deleteRecursively()) // Call deleteRecursively() just in case user has created any directories in our output dir
+                if (file.isFile)
                 {
-                    ++filesDeleted
+                    if (file.delete()) ++filesDeleted
+                    filePaths.add(file.absolutePath)
+                }
+                else if (file.isDirectory)
+                {
+                    // This app layout files in plain hierarchy, without any directories.
+                    // If any directory is found - it means it was created by the user or by the system. Just delete it recursively.
+
+                    if (file.deleteRecursively()) ++filesDeleted
                 }
             }
 
-            // Check if 'input files' was deleted too. In case if it was in the output dir.
+            MediaStoreHelper.removePathsFromMediaStore(context, filePaths.toTypedArray())
+            verifyInputFileExists()
 
-            val inputFile = inputFile.value
-            if (inputFile != null && !inputFile.exists())
-            {
-                this.inputFile.postValue(null)
-                inputFileDuration.postValue(null)
-            }
-
+            // TODO resolve files/files word depending on 'filesDeleted' number
             val message =
                 if (filesDeleted == files.size)
                 {
@@ -183,6 +191,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
                 }
 
             mainThreadHandler.post { completion(message) }
+        }
+    }
+
+    /**
+     * Check if 'input files' was deleted too. In case if it was in the output dir.
+     */
+    private fun verifyInputFileExists()
+    {
+        val inputFile = inputFile.value
+        if (inputFile != null && !inputFile.exists())
+        {
+            this.inputFile.postValue(null)
+            inputFileDuration.postValue(null)
         }
     }
 
@@ -200,7 +221,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
             return file
         }
 
-        fun cut(inputFile: File, outputFile: File, outputCutRange: List<Float>): Int
+        private fun cut(inputFile: File, outputFile: File, outputCutRange: List<Float>): Int
         {
             val command = "-ss ${outputCutRange[0]} -i ${inputFile.absolutePath} -to ${outputCutRange[1]} -c copy ${outputFile.absolutePath}"
             Log.d(TAG, "cut() '$command'")
