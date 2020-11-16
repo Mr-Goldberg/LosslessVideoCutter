@@ -93,7 +93,7 @@ class MainActivity : AppCompatActivity()
     }
 
     //
-    // Controls
+    // Actions
     //
 
     private fun onCutVideoButtonClick(@Suppress("UNUSED_PARAMETER") button: View)
@@ -206,6 +206,48 @@ class MainActivity : AppCompatActivity()
     }
 
     //
+    // UI control
+    //
+
+    private fun enableCutControls(enable: Boolean)
+    {
+        video_cut_range_slider.isEnabled = enable
+        cut_video_button.isEnabled = enable
+    }
+
+    private fun enableOutputVideoActions(enable: Boolean)
+    {
+        output_video_play_button.isEnabled = enable
+        output_video_delete_button.isEnabled = enable
+    }
+
+    private fun showProgressDialog(message: String)
+    {
+        dismissProgressDialog()
+        val dialog = ProgressDialog(this)
+        dialog.setMessage(message)
+        dialog.show()
+        progressDialog = dialog
+    }
+
+    private fun dismissProgressDialog()
+    {
+        progressDialog?.dismiss()
+        progressDialog = null
+    }
+
+    private fun showToast(message: String, isLong: Boolean = false)
+    {
+        val duration = if (isLong) Toast.LENGTH_LONG else Toast.LENGTH_SHORT
+        Toast.makeText(this, message, duration).show()
+    }
+
+    private fun showErrorToastIfNeeded(error: String?, isLong: Boolean = false)
+    {
+        if (error != null) showToast(error, isLong)
+    }
+
+    //
     // Permissions
     //
 
@@ -276,44 +318,6 @@ class MainActivity : AppCompatActivity()
             dismissProgressDialog()
             showErrorToastIfNeeded(error)
         }
-    }
-
-    private fun enableCutControls(enable: Boolean)
-    {
-        video_cut_range_slider.isEnabled = enable
-        cut_video_button.isEnabled = enable
-    }
-
-    private fun enableOutputVideoActions(enable: Boolean)
-    {
-        output_video_play_button.isEnabled = enable
-        output_video_delete_button.isEnabled = enable
-    }
-
-    private fun showProgressDialog(message: String)
-    {
-        dismissProgressDialog()
-        val dialog = ProgressDialog(this)
-        dialog.setMessage(message)
-        dialog.show()
-        progressDialog = dialog
-    }
-
-    private fun dismissProgressDialog()
-    {
-        progressDialog?.dismiss()
-        progressDialog = null
-    }
-
-    private fun showToast(message: String, isLong: Boolean = false)
-    {
-        val duration = if (isLong) Toast.LENGTH_LONG else Toast.LENGTH_SHORT
-        Toast.makeText(this, message, duration).show()
-    }
-
-    private fun showErrorToastIfNeeded(error: String?, isLong: Boolean = false)
-    {
-        if (error != null) showToast(error, isLong)
     }
 
     companion object
