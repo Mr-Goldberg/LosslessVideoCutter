@@ -176,18 +176,33 @@ class MainActivity : AppCompatActivity()
 
     private fun deleteOutputFile(@Suppress("UNUSED_PARAMETER") button: View)
     {
-        showProgressDialog("Removing file")
-        viewModel.deleteOutputFileAsync { error ->
-            dismissProgressDialog()
-            if (error == null)
-            {
-                showToast("File deleted")
-            }
-            else
-            {
-                showToast(error)
-            }
+        val outputFile = viewModel.outputFile.value
+        if (outputFile == null)
+        {
+            showToast("Unable to find file")
+            return
         }
+
+        AlertDialog.Builder(this)
+            .setTitle("Confirm deletion")
+            .setMessage("Are you sure you want to delete file ${outputFile.name} ?\nThis action cannot be undone.")
+            .setPositiveButton("Delete") { _, _ ->
+
+                showProgressDialog("Removing file")
+                viewModel.deleteOutputFileAsync { error ->
+                    dismissProgressDialog()
+                    if (error == null)
+                    {
+                        showToast("File deleted")
+                    }
+                    else
+                    {
+                        showToast(error)
+                    }
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     //
