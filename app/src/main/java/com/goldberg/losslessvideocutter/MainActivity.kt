@@ -15,13 +15,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import com.goldberg.losslessvideocutter.Constants.MIME_TYPE_VIDEO
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 
-// TODO 'share' button for output video
-// TODO ??? add output file to media store
-// TODO 'delete' button for output video
 // TODO 'delete all output' button
+// TODO check any button double presses
 // TODO check if UI is really disabled during async operation
 // TODO Pretty layout
 // TODO chose theme
@@ -44,6 +43,7 @@ class MainActivity : AppCompatActivity()
 
         // Image buttons should be disabled programmatically, xml doesn't work
         input_video_play_button.isEnabled = false
+        output_video_share_button.isEnabled = false
         enableOutputVideoActions(false)
 
         viewModel.inputFile.observe(this, Observer { file ->
@@ -56,6 +56,10 @@ class MainActivity : AppCompatActivity()
             val text = file?.absolutePath ?: ""
             output_video_path_text_view.text = "Output file: $text"
             enableOutputVideoActions(text.isNotEmpty())
+        })
+
+        viewModel.outputFileUri.observe(this, Observer { uri ->
+            output_video_share_button.isEnabled = (uri != null)
         })
 
         viewModel.inputFileDuration.observe(this, Observer { duration ->
@@ -146,17 +150,28 @@ class MainActivity : AppCompatActivity()
         }
 
         val intent = Intent(Intent.ACTION_VIEW)
-        intent.setDataAndType(Uri.parse(file.absolutePath), CONTENT_VIDEO)
+        intent.setDataAndType(Uri.parse(file.absolutePath), MIME_TYPE_VIDEO)
         startActivity(Intent.createChooser(intent, "Open video using"))
     }
 
     private fun shareOutputFile(@Suppress("UNUSED_PARAMETER") button: View)
     {
-        val intent = Intent(Intent.ACTION_SEND)
-        intent.type = CONTENT_VIDEO
-        intent.putExtra(Intent.EXTRA_SUBJECT, "Subject test")
-        intent.putExtra(Intent.EXTRA_TEXT, "extra text that you want to put")
-        startActivity(Intent.createChooser(intent, "Share via"))
+        val outputUri = viewModel.outputFileUri.value
+        if (outputUri == null)
+        {
+            output_video_share_button.isEnabled = false
+            showToast("Unable to share")
+            return
+        }
+
+        val intent: Intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_STREAM, outputUri)
+            putExtra(Intent.EXTRA_SUBJECT, "Video from LosslessVideoCutter") // Subject in email
+            putExtra(Intent.EXTRA_TEXT, "Video from LosslessVideoCutter") // Text in email body or telegram message
+            type = MIME_TYPE_VIDEO
+        }
+        startActivity(Intent.createChooser(intent, "Share to"))
     }
 
     private fun deleteOutputFile(@Suppress("UNUSED_PARAMETER") button: View)
@@ -228,7 +243,7 @@ class MainActivity : AppCompatActivity()
     private fun pickVideo(action: String)
     {
         val intent = Intent()
-        intent.type = CONTENT_VIDEO
+        intent.type = MIME_TYPE_VIDEO
         intent.action = action
         startActivityForResult(Intent.createChooser(intent, "Select Video"), PICK_VIDEO_REQUEST_CODE)
     }
@@ -257,7 +272,6 @@ class MainActivity : AppCompatActivity()
     private fun enableOutputVideoActions(enable: Boolean)
     {
         output_video_play_button.isEnabled = enable
-        output_video_share_button.isEnabled = enable
         output_video_delete_button.isEnabled = enable
     }
 
@@ -291,7 +305,6 @@ class MainActivity : AppCompatActivity()
     {
         private const val TAG = "MainActivity"
 
-        private const val CONTENT_VIDEO = "video/*"
         private val PERMISSIONS = arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         private const val PERMISSIONS_REQUEST_CODE = 100
         private const val PICK_VIDEO_REQUEST_CODE = 101

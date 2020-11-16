@@ -1,6 +1,7 @@
 package com.goldberg.losslessvideocutter
 
 import android.app.Application
+import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Handler
 import android.util.Log
@@ -9,6 +10,7 @@ import androidx.lifecycle.MutableLiveData
 import com.arthenica.mobileffmpeg.Config
 import com.arthenica.mobileffmpeg.FFmpeg
 import com.arthenica.mobileffmpeg.FFprobe
+import com.goldberg.losslessvideocutter.Constants.MIME_TYPE_VIDEO
 import java.io.File
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
@@ -18,8 +20,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
 {
     val inputFile = MutableLiveData<File>()
     val inputFileDuration = MutableLiveData<Float>()
-    val outputFile = MutableLiveData<File>()
     var outputCutRange: List<Float>? = null
+    val outputFile = MutableLiveData<File>()
+    val outputFileUri = MutableLiveData<Uri>()
 
     private val context = getApplication<Application>().applicationContext
     private val backgroundTaskExecutor = ThreadPoolExecutor(0, 1, 60L, TimeUnit.SECONDS, ArrayBlockingQueue<Runnable>(50))
@@ -92,6 +95,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
             }
 
             this.outputFile.postValue(outputFile)
+            MediaScannerConnection.scanFile(context, arrayOf(outputFile.absolutePath), arrayOf(MIME_TYPE_VIDEO)) { path, uri ->
+                Log.d(TAG, "cutAsync() scanFile: $path $uri")
+                outputFileUri.postValue(uri)
+            }
+
             mainThreadHandler.post { completion(error) }
         }
     }
@@ -116,6 +124,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
             if (success)
             {
                 this.outputFile.postValue(null)
+                outputFileUri.postValue(null)
                 mainThreadHandler.post { completion(null) }
             }
             else
