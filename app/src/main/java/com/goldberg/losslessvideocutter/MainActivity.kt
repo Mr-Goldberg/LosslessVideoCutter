@@ -12,6 +12,8 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -35,17 +37,62 @@ class MainActivity : AppCompatActivity()
 {
     private lateinit var viewModel: MainViewModel
     private var progressDialog: ProgressDialog? = null
+    private var selectedVideoSource = Constants.DEFAULT_VIDEO_SOURCE
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+        selectedVideoSource = Settings(this).videoSourceChecked
+
+        //
+        // Setup UI
+        //
 
         // Image buttons should be disabled programmatically, xml doesn't work
         input_video_play_button.isEnabled = false
         output_video_share_button.isEnabled = false
         enableOutputVideoActions(false)
+
+        open_video_file_manager_button.setOnClickListener { pickVideo() }
+        cut_video_button.setOnClickListener(this::onCutVideoButtonClick)
+        input_video_play_button.setOnClickListener { playVideo(viewModel.inputFile.value) }
+        output_video_play_button.setOnClickListener { playVideo(viewModel.outputFile.value) }
+        output_video_share_button.setOnClickListener(this::shareOutputFile)
+        output_video_delete_button.setOnClickListener(this::deleteOutputFile)
+
+        video_source_spinner.apply {
+            val items = VideoSource.STRING_RES_IDS.map { getString(it) }
+            adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_item, items)
+                .apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+
+            setSelection(selectedVideoSource.ordinal, false)
+            onItemSelectedListener = object : AdapterView.OnItemSelectedListener
+            {
+                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long)
+                {
+                    parent ?: return
+                    val item: String = parent.getItemAtPosition(position) as String
+                    selectedVideoSource = enumValueOf(VideoSource::class.java, id.toInt())
+                    Settings(this@MainActivity).videoSourceChecked = selectedVideoSource
+                    Log.d(TAG, "onItemSelectedListener $id $item")
+                }
+
+                override fun onNothingSelected(parent: AdapterView<*>?)
+                {
+                }
+            }
+        }
+
+        video_cut_range_slider.addOnChangeListener { slider, value, _ ->
+            viewModel.outputCutRange = slider.values
+            //Log.d(TAG, "SliderChangeListener ${slider.values} $value")
+        }
+
+        //
+        // Setup observers
+        //
 
         viewModel.inputFile.observe(this, Observer { file ->
             val text = file?.absolutePath ?: ""
@@ -73,19 +120,9 @@ class MainActivity : AppCompatActivity()
             enableCutControls(true)
         })
 
-        open_video_file_manager_button.setOnClickListener { pickVideo(Intent.ACTION_GET_CONTENT) }
-        open_video_gallery_button.setOnClickListener { pickVideo(Intent.ACTION_PICK) }
-        cut_video_button.setOnClickListener(this::onCutVideoButtonClick)
-
-        video_cut_range_slider.addOnChangeListener { slider, value, _ ->
-            viewModel.outputCutRange = slider.values
-            Log.d(TAG, "SliderChangeListener ${slider.values} $value")
-        }
-
-        input_video_play_button.setOnClickListener { playVideo(viewModel.inputFile.value) }
-        output_video_play_button.setOnClickListener { playVideo(viewModel.outputFile.value) }
-        output_video_share_button.setOnClickListener(this::shareOutputFile)
-        output_video_delete_button.setOnClickListener(this::deleteOutputFile)
+        //
+        // Check permissions
+        //
 
         if (!hasPermissions(*PERMISSIONS))
         {
@@ -344,11 +381,17 @@ class MainActivity : AppCompatActivity()
     // File picker
     //
 
-    private fun pickVideo(action: String)
+    private fun pickVideo()
     {
-        val intent = Intent()
-        intent.type = MIME_TYPE_VIDEO
-        intent.action = action
+        val intent = Intent().apply {
+            type = MIME_TYPE_VIDEO
+            action = when (selectedVideoSource)
+            {
+                VideoSource.Gallery -> Intent.ACTION_PICK
+                VideoSource.FileManager -> Intent.ACTION_GET_CONTENT
+            }
+        }
+
         startActivityForResult(Intent.createChooser(intent, "Select Video"), PICK_VIDEO_REQUEST_CODE)
     }
 

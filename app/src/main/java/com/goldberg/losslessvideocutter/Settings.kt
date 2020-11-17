@@ -7,8 +7,15 @@ import android.preference.PreferenceManager
 class Settings(context: Context)
 {
     private val preferences = PreferenceManager.getDefaultSharedPreferences(context)
+    private val resources = context.resources
 
-//    val inputFile by lazy { StringPreference(preferences, "input_file", "") }
+    private val videoSource by lazy { IntPreference(preferences, "video_source", Constants.DEFAULT_VIDEO_SOURCE.ordinal) }
+    var videoSourceChecked: VideoSource
+        get() = enumValueOf(VideoSource::class.java, videoSource.value, Constants.DEFAULT_VIDEO_SOURCE)
+        set(value)
+        {
+            videoSource.value = value.ordinal
+        }
 
     class IntPreference(preferences: SharedPreferences, key: String, val defaultValue: Int)
         : Preference(preferences, key)

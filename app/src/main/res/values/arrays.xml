@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <array name="double_slider_values">
+
+    <array name="cut_slider_defaults">
         <item>0</item>
         <item>100</item>
     </array>
+
 </resources>
