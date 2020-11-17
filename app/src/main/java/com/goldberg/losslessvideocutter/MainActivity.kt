@@ -14,6 +14,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -25,7 +26,6 @@ import java.io.File
 
 // TODO check any button double presses
 // TODO check if UI is really disabled during async operation
-// TODO Pretty layout
 // TODO chose theme
 // TODO check filesystem on android 11
 // Proper layout
@@ -62,6 +62,16 @@ class MainActivity : AppCompatActivity()
         output_video_share_button.setOnClickListener(this::shareOutputFile)
         output_video_delete_button.setOnClickListener(this::deleteOutputFile)
 
+        input_video_path_text_view.apply {
+            isSingleLine = true
+            setOnClickListener(FilePathClickListener(true))
+        }
+
+        output_video_path_text_view.apply {
+            isSingleLine = true
+            setOnClickListener(FilePathClickListener(true))
+        }
+
         video_source_spinner.apply {
             val items = VideoSource.STRING_RES_IDS.map { getString(it) }
             adapter = ArrayAdapter(this@MainActivity, android.R.layout.simple_spinner_item, items)
@@ -96,13 +106,13 @@ class MainActivity : AppCompatActivity()
 
         viewModel.inputFile.observe(this, Observer { file ->
             val text = file?.absolutePath ?: ""
-            input_video_path_text_view.text = "Input file: $text"
+            input_video_path_text_view.text = text
             input_video_play_button.isEnabled = text.isNotEmpty()
         })
 
         viewModel.outputFile.observe(this, Observer { file ->
             val text = file?.absolutePath ?: ""
-            output_video_path_text_view.text = "Output file: $text"
+            output_video_path_text_view.text = text
             enableOutputVideoActions(text.isNotEmpty())
         })
 
@@ -284,6 +294,20 @@ class MainActivity : AppCompatActivity()
     private fun showErrorToastIfNeeded(error: String?, isLong: Boolean = false)
     {
         if (error != null) showToast(error, isLong)
+    }
+
+    /**
+     * TextView.isSingleLine is somehow inaccessible to get.
+     * This is a workaround. We must store its 'isSingleLine' by ourselves.
+     */
+    private class FilePathClickListener(var isSingleLine: Boolean) : View.OnClickListener
+    {
+        override fun onClick(view: View)
+        {
+            view as TextView
+            isSingleLine = !isSingleLine
+            view.isSingleLine = isSingleLine
+        }
     }
 
     //
