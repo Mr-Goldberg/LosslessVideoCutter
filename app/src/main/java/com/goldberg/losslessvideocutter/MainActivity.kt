@@ -9,6 +9,9 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.DocumentsContract
+import android.text.Html
+import android.text.Html.FROM_HTML_MODE_LEGACY
+import android.text.method.LinkMovementMethod
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -26,7 +29,6 @@ import com.goldberg.losslessvideocutter.Constants.MIME_TYPE_VIDEO
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 
-// TODO fill info
 // TODO chose theme
 // TODO check filesystem on android 11
 // Proper layout
@@ -377,7 +379,22 @@ class MainActivity : AppCompatActivity()
             }
             R.id.show_info ->
             {
-                // TODO
+                AlertDialog.Builder(this)
+                    .setTitle("Information")
+                    .setMessage(Html.fromHtml(getString(R.string.info_text), FROM_HTML_MODE_LEGACY))
+                    .setPositiveButton("Close", null)
+                    .show()
+                    .findViewById<TextView>(android.R.id.message).apply {
+                        if (this == null)
+                        {
+                            Log.i(TAG, "onOptionsItemSelected(R.id.show_info) can't find message view of dialog to set up links.")
+                            return@apply
+                        }
+
+                        movementMethod = LinkMovementMethod.getInstance()
+                    }
+
+                return true
             }
         }
 

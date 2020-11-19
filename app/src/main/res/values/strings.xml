@@ -3,4 +3,19 @@
 
     <string name="gallery">Gallery</string>
     <string name="file_manager">File Manager</string>
+
+    <string name="info_text">
+        <![CDATA[
+        <p>This app cuts video without recoding - it is fast and retains original quality.</p>
+        <p><strong>Licenses</strong></p>
+        <ul>
+        <li>Mobile-ffmpeg (<a href="https://github.com/tanersener/mobile-ffmpeg">https://github.com/tanersener/mobile-ffmpeg</a>)</li>
+        </ul>
+        <p><code>MobileFFmpeg</code> is licensed under the LGPL v3.0. However, if source code is built using the optional <code>--enable-gpl</code> flag or prebuilt binaries with <code>-gpl</code> postfix are used, then MobileFFmpeg is subject to the GPL v3.0 license.</p>
+        <p>The source code of all external libraries included is in compliance with their individual licenses.</p>
+        <p><code>openh264</code> source code used in this repository is licensed under the 2-clause BSD License but this license does not cover the <code>MPEG LA</code> licensing fees. If you build <code>mobile-ffmpeg</code> with <code>openh264</code> and distribute that library, then you are subject to pay <code>MPEG LA</code> licensing fees. Refer to <a href="https://www.openh264.org/faq.html" rel="nofollow">OpenH264 FAQ</a> page for the details. Please note that <code>mobile-ffmpeg</code> does not publish a binary with <code>openh264</code> inside.</p>
+        <p><code>strip-frameworks.sh</code> script included and distributed (until v4.x) is published under the <a href="https://www.apache.org/licenses/LICENSE-2.0" rel="nofollow">Apache License version 2.0</a>.</p>
+        <p>In test applications, fonts embedded are licensed under the <a href="https://opensource.org/licenses/OFL-1.1" rel="nofollow">SIL Open Font License</a>; other digital assets are published in the public domain.</p>
+        ]]>
+    </string>
 </resources>
