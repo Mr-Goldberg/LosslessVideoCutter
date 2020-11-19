@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.provider.DocumentsContract
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -25,6 +26,7 @@ import com.goldberg.losslessvideocutter.Constants.MIME_TYPE_VIDEO
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 
+// TODO fill info
 // TODO chose theme
 // TODO check filesystem on android 11
 // Proper layout
@@ -334,7 +336,26 @@ class MainActivity : AppCompatActivity()
         {
             R.id.open_output_dir ->
             {
-                // TODO
+                val outputDir = Storage.getOutputDir().absolutePath
+                AlertDialog.Builder(this)
+                    .setTitle("Open output directory")
+                    .setMessage("The output directory is\n'$outputDir'\nIf can't be opened, open the path manually.")
+                    .setPositiveButton("Open") { _, _ ->
+
+                        // Solution is here, but it doesn't actually working https://stackoverflow.com/a/60694663/5035991
+                        startActivity(
+                            Intent.createChooser(
+                                Intent(Intent.ACTION_VIEW).apply {
+                                    setDataAndType(Uri.parse(outputDir), DocumentsContract.Document.MIME_TYPE_DIR)
+                                },
+                                "Open directory with"
+                            )
+                        )
+                    }
+                    .setNegativeButton("Ok", null)
+                    .show()
+
+                return true
             }
             R.id.clean_output_dir ->
             {
