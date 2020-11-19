@@ -227,7 +227,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
             Log.d(TAG, "cut() '$command'")
 
             val returnCode = FFmpeg.execute(command)
-            Config.printLastCommandOutput(Log.DEBUG) // TODO rm for release
+            if (BuildConfig.DEBUG)
+            {
+                Config.printLastCommandOutput(Log.DEBUG)
+            }
             Log.d(TAG, "cut() executed: $returnCode")
             return returnCode
         }
