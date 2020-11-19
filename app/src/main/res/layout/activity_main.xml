@@ -141,6 +141,22 @@
         app:layout_constraintTop_toBottomOf="@+id/output_video_layout"
         app:values="@array/cut_slider_defaults" />
 
+    <TextView
+        android:id="@+id/video_cut_range_start_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/video_cut_range_slider"
+        tools:text="0:00:00.0" />
+
+    <TextView
+        android:id="@+id/video_cut_range_end_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/video_cut_range_slider"
+        tools:text="0:00:00.0" />
+
     <Button
         android:id="@+id/cut_video_button"
         android:layout_width="wrap_content"
@@ -152,6 +168,6 @@
         android:textSize="16sp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/video_cut_range_slider" />
+        app:layout_constraintTop_toBottomOf="@+id/video_cut_range_start_textview" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

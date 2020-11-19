@@ -19,6 +19,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8.toString()
+    }
 }
 
 dependencies {
@@ -30,7 +37,8 @@ dependencies {
     implementation 'com.google.android.material:material:1.2.1'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
     implementation 'com.arthenica:mobile-ffmpeg-min:4.4' // https://github.com/tanersener/mobile-ffmpeg
-//    testImplementation 'junit:junit:4.13'
+    testImplementation 'junit:junit:4.13.1'
+    testImplementation 'com.google.truth:truth:1.0.1'
 //    androidTestImplementation 'androidx.test.ext:junit:1.1.0'
 //    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
 }

@@ -18,6 +18,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.view.isInvisible
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.goldberg.losslessvideocutter.Constants.MIME_TYPE_VIDEO
@@ -95,9 +96,15 @@ class MainActivity : AppCompatActivity()
             }
         }
 
-        video_cut_range_slider.addOnChangeListener { slider, value, _ ->
-            viewModel.outputCutRange = slider.values
-            //Log.d(TAG, "SliderChangeListener ${slider.values} $value")
+        video_cut_range_slider.apply {
+            setLabelFormatter { toDisplayTime(it) }
+            addOnChangeListener { slider, value, _ ->
+                val values = slider.values
+                viewModel.outputCutRange = values
+                video_cut_range_start_textview.text = toDisplayTime(values[0])
+                video_cut_range_end_textview.text = toDisplayTime(values[1])
+                //Log.d(TAG, "SliderChangeListener ${slider.values} $value")
+            }
         }
 
         //
@@ -121,13 +128,12 @@ class MainActivity : AppCompatActivity()
         })
 
         viewModel.inputFileDuration.observe(this, Observer { duration ->
-            video_cut_range_slider.isEnabled = (duration != null)
+            enableCutControls(duration != null)
             duration ?: return@Observer
             video_cut_range_slider.valueTo = duration
             val cutRange = listOf(0.0f, duration)
             viewModel.outputCutRange = cutRange
             video_cut_range_slider.values = cutRange
-            enableCutControls(true)
         })
 
         //
@@ -261,6 +267,8 @@ class MainActivity : AppCompatActivity()
     private fun enableCutControls(enable: Boolean)
     {
         video_cut_range_slider.isEnabled = enable
+        video_cut_range_start_textview.isInvisible = !enable
+        video_cut_range_end_textview.isInvisible = !enable
         cut_video_button.isEnabled = enable
     }
 
