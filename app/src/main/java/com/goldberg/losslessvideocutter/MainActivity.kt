@@ -25,8 +25,6 @@ import com.goldberg.losslessvideocutter.Constants.MIME_TYPE_VIDEO
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 
-// TODO check any button double presses
-// TODO check if UI is really disabled during async operation
 // TODO chose theme
 // TODO check filesystem on android 11
 // Proper layout
@@ -34,6 +32,7 @@ import java.io.File
 // TODO extract strings
 // TODO localize Russian/Ukrainian
 // TODO extract key frames from ffmpeg to make user cut experience better
+// TODO check any button double presses
 class MainActivity : AppCompatActivity()
 {
     private lateinit var viewModel: MainViewModel
@@ -281,10 +280,11 @@ class MainActivity : AppCompatActivity()
     private fun showProgressDialog(message: String)
     {
         dismissProgressDialog()
-        val dialog = ProgressDialog(this)
-        dialog.setMessage(message)
-        dialog.show()
-        progressDialog = dialog
+        progressDialog = ProgressDialog(this).apply {
+            setMessage(message)
+            setCancelable(false)
+            show()
+        }
     }
 
     private fun dismissProgressDialog()
