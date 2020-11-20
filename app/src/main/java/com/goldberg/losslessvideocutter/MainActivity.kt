@@ -29,7 +29,6 @@ import com.goldberg.losslessvideocutter.Constants.MIME_TYPE_VIDEO
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 
-// TODO chose theme
 // TODO make filemanager open for output location 1. android-native 2. 3rd party 3. verify everything is working in both device and emulator
 // -- after release --
 // TODO extract strings
