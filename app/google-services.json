@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "386831843089",
+    "firebase_url": "https://loessvideocutter.firebaseio.com",
+    "project_id": "loessvideocutter",
+    "storage_bucket": "loessvideocutter.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:386831843089:android:3ec38ab7f489fd3f73d6b0",
+        "android_client_info": {
+          "package_name": "com.goldberg.losslessvideocutter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "386831843089-54qrrl5p14g94m3b3qt26spa3ep9jfl2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAc5xkvaMMTyyntpiDGKwASs38Cv6AT-2E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "386831843089-54qrrl5p14g94m3b3qt26spa3ep9jfl2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,5 +1,6 @@
 package com.goldberg.losslessvideocutter
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import java.text.DecimalFormat
 
 val fractionOfSecondFormat = DecimalFormat(".00").apply {
@@ -17,4 +18,9 @@ fun toDisplayTime(seconds: Float): String
     secondsRest -= minutes * 60
 
     return String.format("%d:%02d:%02d%s", hours, minutes, secondsRest, fractionOfSecondFormat.format(seconds))
+}
+
+fun crashlyticsRecordException(message: String)
+{
+    FirebaseCrashlytics.getInstance().recordException(Exception(message))
 }

@@ -1,6 +1,8 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'
 
 android {
     compileSdkVersion 29
@@ -37,6 +39,23 @@ dependencies {
     implementation 'com.google.android.material:material:1.2.1'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
     implementation 'com.arthenica:mobile-ffmpeg-min:4.4' // https://github.com/tanersener/mobile-ffmpeg
+
+    //
+    // Firebase
+    //
+
+    // Import the BoM for the Firebase platform
+    implementation platform('com.google.firebase:firebase-bom:26.1.0')
+
+    // Declare the dependencies for the Crashlytics and Analytics libraries
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation 'com.google.firebase:firebase-crashlytics-ktx'
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+
+    //
+    // Testing
+    //
+
     testImplementation 'junit:junit:4.13.1'
     testImplementation 'com.google.truth:truth:1.0.1'
 //    androidTestImplementation 'androidx.test.ext:junit:1.1.0'

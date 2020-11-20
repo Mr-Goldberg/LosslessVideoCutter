@@ -16,7 +16,6 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
-
 class MainViewModel(application: Application) : AndroidViewModel(application)
 {
     // Set by this (Model) class, observed by Activity
@@ -34,7 +33,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
     private val backgroundTaskExecutor = ThreadPoolExecutor(0, 1, 60L, TimeUnit.SECONDS, ArrayBlockingQueue<Runnable>(50))
     private val mainThreadHandler = Handler()
 
-    // TODO handle exceptions
     fun isOutputFileExists(): Boolean
     {
         val inputFile = inputFile.value ?: throw IllegalStateException("No input file selected")
@@ -66,6 +64,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
             val duration = info.duration.toFloatOrNull()
             if (duration == null || duration <= 0)
             {
+                crashlyticsRecordException("setVideoFileAsync() error: Can't read video info")
                 inputFileDuration.postValue(null)
                 mainThreadHandler.post { completion("Can't read video info") }
                 return@execute
@@ -76,7 +75,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    // TODO handle exceptions
     fun cutAsync(overwrite: Boolean, completion: (error: String?) -> Unit)
     {
         val inputFile = inputFile.value ?: throw IllegalStateException("No input file selected")
@@ -95,8 +93,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
             var error: String? = null
             if (result != 0)
             {
-                Log.i(TAG, "cutAsync() error: $result")
-                // TODO Crashlytics log
+                Log.e(TAG, "cutAsync() error: $result")
+                crashlyticsRecordException("cutAsync() error: $result")
                 error = "Error happened while processing video"
             }
 
@@ -231,7 +229,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
             {
                 Config.printLastCommandOutput(Log.DEBUG)
             }
+
             Log.d(TAG, "cut() executed: $returnCode")
+
             return returnCode
         }
     }
