@@ -1,6 +1,6 @@
 package com.goldberg.losslessvideocutter
 
-import android.Manifest
+import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.ProgressDialog
@@ -57,7 +57,7 @@ class MainActivity : AppCompatActivity()
         output_video_share_button.isEnabled = false
         enableOutputVideoActions(false)
 
-        open_video_file_manager_button.setOnClickListener { pickVideo() }
+        open_video_button.setOnClickListener(this::onPickVideoButtonClick)
         cut_video_button.setOnClickListener(this::onCutVideoButtonClick)
         input_video_play_button.setOnClickListener { playVideo(viewModel.inputFile.value) }
         output_video_play_button.setOnClickListener { playVideo(viewModel.outputFile.value) }
@@ -136,22 +136,22 @@ class MainActivity : AppCompatActivity()
             viewModel.outputCutRange = cutRange
             video_cut_range_slider.values = cutRange
         })
-
-        //
-        // Check permissions
-        //
-
-        // TODO move to 'open file' button
-        if (!hasPermissions(*PERMISSIONS))
-        {
-            requestPermissions()
-            return
-        }
     }
 
     //
     // Actions
     //
+
+    private fun onPickVideoButtonClick(@Suppress("UNUSED_PARAMETER") button: View)
+    {
+        if (!hasPermissions())
+        {
+            requestPermissions()
+            return
+        }
+
+        pickVideo()
+    }
 
     private fun onCutVideoButtonClick(@Suppress("UNUSED_PARAMETER") button: View)
     {
@@ -404,46 +404,43 @@ class MainActivity : AppCompatActivity()
     // Permissions
     //
 
+    /**
+     * Proper scheme of using [shouldShowRequestPermissionRationale]:
+     * https://stackoverflow.com/a/34612503/5035991
+     */
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray)
     {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode != PERMISSIONS_REQUEST_CODE) return
 
-        if (!hasPermissions())
+        if (grantResults[0] == PackageManager.PERMISSION_DENIED)
         {
-            // TODO provide rationale
-            // https://stackoverflow.com/questions/32347532/android-m-permissions-confused-on-the-usage-of-shouldshowrequestpermissionrati
-//            if (shouldShowRequestPermissionRationale(PERMISSIONS[0]))
-//            {
-//                AlertDialog.Builder(this)
-//                    .setTitle("Please grant storage access permission.")
-//                    .setMessage("Storage access permission is required to read/write video files.")
-//                    .show()
-//            }
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, WRITE_EXTERNAL_STORAGE))
+            {
+                AlertDialog.Builder(this)
+                    .setMessage("Access to device storage is mandatory to open, edit, and save the video files.")
+                    .setPositiveButton("Allow") { _, _ -> requestPermissions() }
+                    .setNegativeButton("Deny", null)
+                    .show()
+            }
 
-            requestPermissions()
             return
         }
+
+        // Only one permission is requested solely when the 'open file' button is clicked,
+        // so we can proceed picking file, if the permission is granted.
+
+        pickVideo()
     }
 
     private fun requestPermissions()
     {
-        ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSIONS_REQUEST_CODE)
+        ActivityCompat.requestPermissions(this, arrayOf(WRITE_EXTERNAL_STORAGE), PERMISSIONS_REQUEST_CODE)
     }
 
-    private fun hasPermissions() = hasPermissions(*PERMISSIONS)
-
-    private fun hasPermissions(vararg permissions: String): Boolean
+    private fun hasPermissions(): Boolean
     {
-        for (permission in permissions)
-        {
-            if (ActivityCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED)
-            {
-                return false
-            }
-        }
-
-        return true
+        return (ActivityCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)
     }
 
     //
@@ -483,7 +480,6 @@ class MainActivity : AppCompatActivity()
     {
         private const val TAG = "MainActivity"
 
-        private val PERMISSIONS = arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         private const val PERMISSIONS_REQUEST_CODE = 100
         private const val PICK_VIDEO_REQUEST_CODE = 101
     }
