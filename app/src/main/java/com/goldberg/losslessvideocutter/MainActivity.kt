@@ -30,8 +30,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 
 // TODO chose theme
-// TODO check filesystem on android 11
-// Proper layout
+// TODO make filemanager open for output location 1. android-native 2. 3rd party 3. verify everything is working in both device and emulator
 // -- after release --
 // TODO extract strings
 // TODO localize Russian/Ukrainian
@@ -143,6 +142,7 @@ class MainActivity : AppCompatActivity()
         // Check permissions
         //
 
+        // TODO move to 'open file' button
         if (!hasPermissions(*PERMISSIONS))
         {
             requestPermissions()
@@ -354,7 +354,7 @@ class MainActivity : AppCompatActivity()
                             )
                         )
                     }
-                    .setNegativeButton("Ok", null)
+                    .setNegativeButton("Cancel", null)
                     .show()
 
                 return true
