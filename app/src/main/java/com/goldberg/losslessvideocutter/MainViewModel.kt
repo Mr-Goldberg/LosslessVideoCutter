@@ -281,7 +281,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
 
         private fun cut(inputFile: File, outputFile: File, outputCutRange: List<Float>): Int
         {
-            val command = "-ss ${outputCutRange[0]} -i ${inputFile.absolutePath} -to ${outputCutRange[1]} -c copy ${outputFile.absolutePath}"
+            val command = "-i ${inputFile.absolutePath} -ss ${outputCutRange[0]} -t ${outputCutRange[1] - outputCutRange[0]} -c copy ${outputFile.absolutePath}"
             Log.d(TAG, "cut() '$command'")
 
             val returnCode = FFmpeg.execute(command)
