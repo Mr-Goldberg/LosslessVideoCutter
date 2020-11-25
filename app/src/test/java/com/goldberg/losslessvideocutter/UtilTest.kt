@@ -5,7 +5,6 @@ import org.junit.Test
 
 class UtilTest
 {
-
     @Test
     fun timeTest()
     {

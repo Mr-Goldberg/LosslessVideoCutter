@@ -8,8 +8,10 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import com.arthenica.mobileffmpeg.Config
+import com.arthenica.mobileffmpeg.Config.RETURN_CODE_SUCCESS
 import com.arthenica.mobileffmpeg.FFmpeg
 import com.arthenica.mobileffmpeg.FFprobe
+import com.goldberg.losslessvideocutter.Constants.KEYFRAME_TIMING_EXTRACTION_REGEX
 import com.goldberg.losslessvideocutter.Constants.MIME_TYPE_VIDEO
 import java.io.File
 import java.util.concurrent.ArrayBlockingQueue
@@ -22,6 +24,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
 
     val inputFile = MutableLiveData<File>()
     val inputFileDuration = MutableLiveData<Float>()
+    val inputFileKeyframeTimings = MutableLiveData<Array<Double>>()
     val outputFile = MutableLiveData<File>()
     val outputFileUri = MutableLiveData<Uri>()
 
@@ -51,7 +54,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
             Log.d(TAG, "setVideoFile() path: $videoPath")
             val videoFile = checkInputFile(videoPath)
             inputFile.postValue(videoFile)
-            if (videoFile == null)
+            if (videoFile == null || videoPath == null)
             {
                 mainThreadHandler.post { completion("File does not exist or no access") }
                 return@execute
@@ -59,7 +62,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
 
             // Read video duration
 
-            val info = FFprobe.getMediaInformation(videoFile.absolutePath)
+            val info = FFprobe.getMediaInformation(videoPath)
             Log.d(TAG, "setVideoFile() duration: ${info.duration}")
             val duration = info.duration.toFloatOrNull()
             if (duration == null || duration <= 0)
@@ -71,6 +74,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
             }
 
             inputFileDuration.postValue(duration)
+
+            // Read video keyframe timings
+
+            val keyframeTimings = getKeyframeTimings(videoPath)
+            if (keyframeTimings.isNullOrEmpty())
+            {
+                crashlyticsRecordException("setVideoFileAsync() error: Can't read video keyframes")
+                inputFileKeyframeTimings.postValue(null)
+                mainThreadHandler.post { completion("Can't read video keyframes") }
+                return@execute
+            }
+
+            inputFileKeyframeTimings.postValue(keyframeTimings)
             mainThreadHandler.post { completion(null) }
         }
     }
@@ -217,6 +233,39 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
             if (!file.exists()) return null
 
             return file
+        }
+
+        private fun getKeyframeTimings(path: String): Array<Double>?
+        {
+            val durationMeter = DurationMeter.start()
+
+            // '-loglevel error' affects only this particular command, not the whole library state
+            val result = FFprobe.execute("-loglevel error -select_streams v:0 -show_entries packet=pts_time,flags -of csv=print_section=0 $path")
+            if (result != RETURN_CODE_SUCCESS)
+            {
+                Log.i(TAG, "getKeyframeTimings() ffprobe result: $result, can't process video")
+                return null
+            }
+
+            val output = Config.getLastCommandOutput()
+            val matchResults = KEYFRAME_TIMING_EXTRACTION_REGEX.findAll(output)
+            val keyframeTimings = ArrayList<Double>()
+            for (match in matchResults)
+            {
+                try
+                {
+                    val value = match.groupValues[1].toDouble()
+                    keyframeTimings.add(value)
+                }
+                catch (ex: RuntimeException)
+                {
+                    Log.i(TAG, "getKeyframeTimings() exception: ${ex.message}")
+                }
+            }
+
+            durationMeter.stopAndPrint(TAG, "getKeyframeTimings()")
+
+            return keyframeTimings.toTypedArray()
         }
 
         private fun cut(inputFile: File, outputFile: File, outputCutRange: List<Float>): Int
