@@ -66,7 +66,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
 
             // Read video duration
 
-            // FIXME crashes sometimes. Maybe this happens only on "Apply changes and restart Activity" action in Android Studio
+            // FFprobe.getMediaInformation() crashes sometimes. Maybe this happens only on "Apply changes and restart Activity" action in Android Studio.
+            // This note is put here just to not start investigating the issue.
             // 2020-11-25 17:34:13.638 8783-9012/com.goldberg.losslessvideocutter E/System: Unable to open zip file: /data/app/com.goldberg.losslessvideocutter-FA7ZoIxAdT4oiZjlnVDeiw==/base.apk
             // 2020-11-25 17:34:13.641 8783-9012/com.goldberg.losslessvideocutter E/System: java.io.FileNotFoundException: File doesn't exist: /data/app/com.goldberg.losslessvideocutter-FA7ZoIxAdT4oiZjlnVDeiw==/base.apk
             // java.lang.UnsatisfiedLinkError: dlopen failed: library "libavfilter.so" not found

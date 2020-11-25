@@ -4,5 +4,6 @@
     <dimen name="activity_padding">8dp</dimen>
     <dimen name="action_button_padding">2dp</dimen>
     <dimen name="main_widgets_margin">16dp</dimen>
+    <dimen name="slider_stroke_width">2dp</dimen>
 
 </resources>

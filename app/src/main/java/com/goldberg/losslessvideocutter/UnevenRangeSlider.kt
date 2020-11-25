@@ -2,7 +2,6 @@ package com.goldberg.losslessvideocutter
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
 import com.google.android.material.slider.RangeSlider
@@ -14,8 +13,9 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 {
     private val paint = Paint().apply {
         style = Paint.Style.STROKE
-        strokeWidth = 4f // TODO to dp
-        color = Color.GREEN
+        strokeCap = Paint.Cap.BUTT
+        strokeWidth = resources.getDimensionPixelSize(R.dimen.slider_stroke_width).toFloat()
+        color = resources.getColor(R.color.keyframe_slider_bars, null)
     }
 
     private var _steps: Array<Float>? = null
@@ -39,8 +39,10 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 
         val stepsToDraw = FloatArray(steps.size * 4)
         val pixelsPerSecond = trackWidth / (valueTo - valueFrom)
-        val y0 = 0f
-        val y1 = height.toFloat()
+
+        val yRadius = trackHeight * 1.25f
+        val y0 = height / 2 - yRadius
+        val y1 = height / 2 + yRadius
         val offsetX = (width - trackWidth) / 2f
         var x: Float
         var baseTargetIndex: Int
