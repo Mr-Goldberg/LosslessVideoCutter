@@ -23,11 +23,12 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.isInvisible
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.goldberg.losslessvideocutter.Constants.MIME_TYPE_VIDEO
+import com.google.android.material.slider.RangeSlider
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
+import kotlin.math.abs
 
 // TODO make filemanager open for output location 1. android-native 2. 3rd party 3. verify everything is working in both device and emulator
 // -- after release --
@@ -99,43 +100,79 @@ class MainActivity : AppCompatActivity()
 
         video_cut_range_slider.apply {
             setLabelFormatter { toDisplayTime(it) }
-            addOnChangeListener { slider, value, _ ->
+
+            addOnChangeListener { slider, value, fromUser ->
                 val values = slider.values
                 viewModel.outputCutRange = values
                 video_cut_range_start_textview.text = toDisplayTime(values[0])
                 video_cut_range_end_textview.text = toDisplayTime(values[1])
-                //Log.d(TAG, "SliderChangeListener ${slider.values} $value")
+//                Log.d(TAG, "SliderChangeListener ${slider.values} $value $fromUser")
             }
+
+            addOnSliderTouchListener(object : RangeSlider.OnSliderTouchListener
+            {
+                override fun onStopTrackingTouch(slider: RangeSlider)
+                {
+                    val outputCutRange = viewModel.outputCutRange
+                    val keyframeTimings = viewModel.inputFileKeyframeTimings.value
+                    if (outputCutRange == null || keyframeTimings == null) return
+
+                    val cutRangeStart = outputCutRange[0]
+                    var minTimeDifference = Float.MAX_VALUE
+                    var nearestKeyframeTiming = 0.0f
+                    for (timing in keyframeTimings)
+                    {
+                        val diff = abs(cutRangeStart - timing)
+                        if (diff < minTimeDifference)
+                        {
+                            minTimeDifference = diff
+                            nearestKeyframeTiming = timing
+                        }
+                    }
+
+                    if (cutRangeStart == nearestKeyframeTiming) return
+
+                    // This will call SliderChangeListener (addOnChangeListener()) and update all values in UI and in the model.
+
+                    video_cut_range_slider.values = listOf(nearestKeyframeTiming, outputCutRange[1])
+                }
+
+                override fun onStartTrackingTouch(slider: RangeSlider) = Unit
+            })
         }
 
         //
         // Setup observers
         //
 
-        viewModel.inputFile.observe(this, Observer { file ->
+        viewModel.inputFile.observe(this) { file ->
             val text = file?.absolutePath ?: ""
             input_video_path_text_view.text = text
             input_video_play_button.isEnabled = text.isNotEmpty()
-        })
+        }
 
-        viewModel.outputFile.observe(this, Observer { file ->
+        viewModel.outputFile.observe(this) { file ->
             val text = file?.absolutePath ?: ""
             output_video_path_text_view.text = text
             enableOutputVideoActions(text.isNotEmpty())
-        })
+        }
 
-        viewModel.outputFileUri.observe(this, Observer { uri ->
+        viewModel.outputFileUri.observe(this) { uri ->
             output_video_share_button.isEnabled = (uri != null)
-        })
+        }
 
-        viewModel.inputFileDuration.observe(this, Observer { duration ->
+        viewModel.inputFileDuration.observe(this) { duration ->
             enableCutControls(duration != null)
-            duration ?: return@Observer
+            duration ?: return@observe
             video_cut_range_slider.valueTo = duration
             val cutRange = listOf(0.0f, duration)
             viewModel.outputCutRange = cutRange
             video_cut_range_slider.values = cutRange
-        })
+        }
+
+        viewModel.inputFileKeyframeTimings.observe(this) { keyframeTimings ->
+            video_cut_range_slider.steps = keyframeTimings
+        }
     }
 
     //

@@ -24,7 +24,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
 
     val inputFile = MutableLiveData<File>()
     val inputFileDuration = MutableLiveData<Float>()
-    val inputFileKeyframeTimings = MutableLiveData<Array<Double>>()
+    val inputFileKeyframeTimings = MutableLiveData<Array<Float>>()
     val outputFile = MutableLiveData<File>()
     val outputFileUri = MutableLiveData<Uri>()
 
@@ -53,14 +53,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
             val videoPath = PathResolver.getPath(context, uri)
             Log.d(TAG, "setVideoFile() path: $videoPath")
             val videoFile = checkInputFile(videoPath)
-            inputFile.postValue(videoFile)
             if (videoFile == null || videoPath == null)
             {
+                inputFile.postValue(null)
+                inputFileDuration.postValue(null)
+                inputFileKeyframeTimings.postValue(null)
                 mainThreadHandler.post { completion("File does not exist or no access") }
                 return@execute
             }
 
+            inputFile.postValue(videoFile)
+
             // Read video duration
+
+            // FIXME crashes sometimes. Maybe this happens only on "Apply changes and restart Activity" action in Android Studio
+            // 2020-11-25 17:34:13.638 8783-9012/com.goldberg.losslessvideocutter E/System: Unable to open zip file: /data/app/com.goldberg.losslessvideocutter-FA7ZoIxAdT4oiZjlnVDeiw==/base.apk
+            // 2020-11-25 17:34:13.641 8783-9012/com.goldberg.losslessvideocutter E/System: java.io.FileNotFoundException: File doesn't exist: /data/app/com.goldberg.losslessvideocutter-FA7ZoIxAdT4oiZjlnVDeiw==/base.apk
+            // java.lang.UnsatisfiedLinkError: dlopen failed: library "libavfilter.so" not found
 
             val info = FFprobe.getMediaInformation(videoPath)
             Log.d(TAG, "setVideoFile() duration: ${info.duration}")
@@ -69,6 +78,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
             {
                 crashlyticsRecordException("setVideoFileAsync() error: Can't read video info")
                 inputFileDuration.postValue(null)
+                inputFileKeyframeTimings.postValue(null)
                 mainThreadHandler.post { completion("Can't read video info") }
                 return@execute
             }
@@ -235,7 +245,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
             return file
         }
 
-        private fun getKeyframeTimings(path: String): Array<Double>?
+        private fun getKeyframeTimings(path: String): Array<Float>?
         {
             val durationMeter = DurationMeter.start()
 
@@ -249,12 +259,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
 
             val output = Config.getLastCommandOutput()
             val matchResults = KEYFRAME_TIMING_EXTRACTION_REGEX.findAll(output)
-            val keyframeTimings = ArrayList<Double>()
+            val keyframeTimings = ArrayList<Float>()
             for (match in matchResults)
             {
                 try
                 {
-                    val value = match.groupValues[1].toDouble()
+                    val value = match.groupValues[1].toFloat()
                     keyframeTimings.add(value)
                 }
                 catch (ex: RuntimeException)

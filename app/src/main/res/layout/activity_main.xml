@@ -132,7 +132,7 @@
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <com.google.android.material.slider.RangeSlider
+        <com.goldberg.losslessvideocutter.UnevenRangeSlider
             android:id="@+id/video_cut_range_slider"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

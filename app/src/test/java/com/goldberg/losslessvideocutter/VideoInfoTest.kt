@@ -17,13 +17,13 @@ class VideoInfoTest
         matchResults.forEachIndexed { index, matchResult ->
             val groups = matchResult.groupValues
             assertThat(groups.count()).isEqualTo(2)
-            assertThat(groups[1].toDoubleOrNull()).isEqualTo(MATCH_RESULTS[index])
+            assertThat(groups[1].toFloatOrNull()).isEqualTo(MATCH_RESULTS[index])
         }
     }
 
     companion object
     {
-        private val MATCH_RESULTS = arrayOf(0.0, 1.106544, 2.108878, 3.111211, 4.113722, 5.115978, 6.118311, 7.120644, 8.122978, 9.125411, 10.127878, 11.130167)
+        private val MATCH_RESULTS = arrayOf(0.0f, 1.106544f, 2.108878f, 3.111211f, 4.113722f, 5.115978f, 6.118311f, 7.120644f, 8.122978f, 9.125411f, 10.127878f, 11.130167f)
 
         private const val FFPROBE_KEYFRAME_INFO_OUTPUT = "0.000000,K_\n" +
                 "    0.137578,__\n" +
