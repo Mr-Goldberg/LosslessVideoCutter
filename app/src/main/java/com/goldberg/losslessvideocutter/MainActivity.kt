@@ -25,6 +25,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.view.isInvisible
 import androidx.lifecycle.ViewModelProvider
 import com.goldberg.losslessvideocutter.Constants.MIME_TYPE_VIDEO
+import com.goldberg.losslessvideocutter.Constants.MIN_CUT_DURATION_SECONDS
 import com.google.android.material.slider.RangeSlider
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
@@ -113,6 +114,8 @@ class MainActivity : AppCompatActivity()
             {
                 override fun onStopTrackingTouch(slider: RangeSlider)
                 {
+                    // Find nearest keyframe
+
                     val outputCutRange = viewModel.outputCutRange
                     val keyframeTimings = viewModel.inputFileKeyframeTimings.value
                     if (outputCutRange == null || keyframeTimings == null) return
@@ -130,11 +133,21 @@ class MainActivity : AppCompatActivity()
                         }
                     }
 
-                    if (cutRangeStart == nearestKeyframeTiming) return
+                    // Ensure cut is at least of minimal length
+
+                    var newOutputCutRange = if (outputCutRange[1] - nearestKeyframeTiming >= MIN_CUT_DURATION_SECONDS)
+                    {
+                        listOf(nearestKeyframeTiming, outputCutRange[1])
+                    }
+                    else
+                    {
+                        showToast("Min cut length is $MIN_CUT_DURATION_SECONDS seconds")
+                        listOf(nearestKeyframeTiming, nearestKeyframeTiming + MIN_CUT_DURATION_SECONDS)
+                    }
 
                     // This will call SliderChangeListener (addOnChangeListener()) and update all values in UI and in the model.
 
-                    video_cut_range_slider.values = listOf(nearestKeyframeTiming, outputCutRange[1])
+                    video_cut_range_slider.values = newOutputCutRange
                 }
 
                 override fun onStartTrackingTouch(slider: RangeSlider) = Unit
