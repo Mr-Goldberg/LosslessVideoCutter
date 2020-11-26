@@ -11,6 +11,7 @@ import com.arthenica.mobileffmpeg.Config
 import com.arthenica.mobileffmpeg.Config.RETURN_CODE_SUCCESS
 import com.arthenica.mobileffmpeg.FFmpeg
 import com.arthenica.mobileffmpeg.FFprobe
+import com.goldberg.losslessvideocutter.Constants.CUT_RANGE_START_ADJUSTMENT_SECONDS
 import com.goldberg.losslessvideocutter.Constants.KEYFRAME_TIMING_EXTRACTION_REGEX
 import com.goldberg.losslessvideocutter.Constants.MIME_TYPE_VIDEO
 import java.io.File
@@ -287,7 +288,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
             // '-0.1' forces ffmpeg to pickup the very start of a video.
             // The particular case was happening with the first keyframe at 0.0004. In video recorded by XRecorder android app.
 
-            val outputCutStart = if (outputCutRange[0] > 0.01f) outputCutRange[0] else -0.01f
+            val outputCutStart = if (outputCutRange[0] > CUT_RANGE_START_ADJUSTMENT_SECONDS) outputCutRange[0] else -CUT_RANGE_START_ADJUSTMENT_SECONDS
 
             val cutStartTime = String.format("%.6f", outputCutStart)
             val cutDurationTime = String.format("%.6f", outputCutRange[1] - outputCutRange[0])
