@@ -13,3 +13,7 @@ Under the hood using [Mobile-FFMpeg](https://github.com/tanersener/mobile-ffmpeg
 The limitation of such an approach - the first frame of the cut video should be a so-called keyframe. Each keyframe stores the complete still image of the frame, while subsequent frames are only encoding the changes to the keyframe. Keyframe may appear each second or so, depending on the recorder. Therefore, if the first frame of a video is not a keyframe, video information cannot be decoded until the next keyframe arises, resulting in a black or broken beginning of the video sequence and audio synchronization issues.
 
 The app forces the beginning of 'cut' selection to be the keyframe.
+
+#### Icons used
+
+Modified versions of icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> and <a href="https://www.flaticon.com/authors/smashicons" title="Smashicons">Smashicons</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
