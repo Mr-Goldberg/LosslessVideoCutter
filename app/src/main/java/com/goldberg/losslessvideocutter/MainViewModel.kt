@@ -116,12 +116,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
                 return@execute
             }
 
-            val result = cut(inputFile, outputFile, outputCutRange)
+            val output = cut(inputFile, outputFile, outputCutRange)
             var error: String? = null
-            if (result != 0)
+            if (output != null)
             {
-                Log.e(TAG, "cutAsync() error: $result")
-                crashlyticsRecordException("cutAsync() error: $result")
+                Log.e(TAG, "cutAsync() error: $output")
+                crashlyticsRecordException("cutAsync() error: $output")
                 error = "Error happened while processing video"
             }
 
@@ -275,13 +275,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
             }
 
             durationMeter.stopAndPrint(TAG, "getKeyframeTimings()")
+            Log.d(TAG, "getKeyframeTimings() $keyframeTimings")
 
             return keyframeTimings.toTypedArray()
         }
 
-        private fun cut(inputFile: File, outputFile: File, outputCutRange: List<Float>): Int
+        private fun cut(inputFile: File, outputFile: File, outputCutRange: List<Float>): String?
         {
-            val command = "-i ${inputFile.absolutePath} -ss ${outputCutRange[0]} -t ${outputCutRange[1] - outputCutRange[0]} -c copy ${outputFile.absolutePath}"
+            // WORKAROUND
+            // When '-ss' argument is near '0', ffmppeg may not handle the first keyframe properly, and the start of video will be lost.
+            // '-0.1' forces ffmpeg to pickup the very start of a video.
+            // The particular case was happening with the first keyframe at 0.0004. In video recorded by XRecorder android app.
+
+            val outputCutStart = if (outputCutRange[0] > 0.01f) outputCutRange[0] else -0.01f
+
+            val cutStartTime = String.format("%.6f", outputCutStart)
+            val cutDurationTime = String.format("%.6f", outputCutRange[1] - outputCutRange[0])
+            val command = "-i ${inputFile.absolutePath} -ss $cutStartTime -t $cutDurationTime -c copy ${outputFile.absolutePath}"
             Log.d(TAG, "cut() '$command'")
 
             val returnCode = FFmpeg.execute(command)
@@ -292,7 +302,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
 
             Log.d(TAG, "cut() executed: $returnCode")
 
-            return returnCode
+            if (returnCode != RETURN_CODE_SUCCESS)
+            {
+                return Config.getLastCommandOutput()
+            }
+
+            return null
         }
     }
 }
