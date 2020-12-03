@@ -15,6 +15,7 @@ import com.goldberg.losslessvideocutter.Constants.CUT_RANGE_START_ADJUSTMENT_SEC
 import com.goldberg.losslessvideocutter.Constants.KEYFRAME_TIMING_EXTRACTION_REGEX
 import com.goldberg.losslessvideocutter.Constants.MIME_TYPE_VIDEO
 import java.io.File
+import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
@@ -290,8 +291,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application)
 
             val outputCutStart = if (outputCutRange[0] > CUT_RANGE_START_ADJUSTMENT_SECONDS) outputCutRange[0] else -CUT_RANGE_START_ADJUSTMENT_SECONDS
 
-            val cutStartTime = String.format("%.6f", outputCutStart)
-            val cutDurationTime = String.format("%.6f", outputCutRange[1] - outputCutRange[0])
+            val cutStartTime = String.format(Locale.US, "%.6f", outputCutStart)
+            val cutDurationTime = String.format(Locale.US, "%.6f", outputCutRange[1] - outputCutRange[0])
             val command = "-i ${inputFile.absolutePath} -ss $cutStartTime -t $cutDurationTime -c copy ${outputFile.absolutePath}"
             Log.d(TAG, "cut() '$command'")
 
