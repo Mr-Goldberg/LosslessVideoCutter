@@ -1,6 +1,6 @@
 # Lossless Video Cutter
 
-Designed to cut video keeping the quality of the original video.
+Designed to cut video keeping the quality of the original. [Install from Google Play](https://play.google.com/store/apps/details?id=com.goldberg.losslessvideocutter).
 
 ## How is this working?
 
